@@ -12,7 +12,6 @@ export function v1(api: app) {
 
 function getIP(api: app, uri: string) {
     api.server.get(`${uri}getIP`, (req: Request, res: Response) => {
-        print("Ping");
         const ips: string | string[] | undefined = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
         if (ips === undefined)
             res.status(404).json('Error undefined ip');
