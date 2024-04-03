@@ -1,0 +1,29 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "api for rainbowcreation",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RainBowCreation/web-api.git"
+  },
+  "keywords": [
+    "RainBowCreation"
+  ],
+  "author": "NathanielSong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RainBowCreation/web-api/issues"
+  },
+  "homepage": "https://github.com/RainBowCreation/web-api#readme",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.3",
+    "express": "^4.19.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3"
+  }
+}
