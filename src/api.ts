@@ -25,6 +25,10 @@ export function startServer(api: app) {
     });
 }
 
+export function now(): number {
+    return Date.now();
+}
+
 export function print(message: string | number | object) {
     console.log(message);
 }
