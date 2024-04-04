@@ -24,14 +24,7 @@ function updateSession(api: app, uri: string, sessions: sessions) {
 
   api.server.get(`${uri}updateSession`, (req: Request, res: Response) => {
     const ip: string = getip(req);
-    if (ip != "" && sessions.map.has(ip)) {
-      let ses = sessions.map.get(ip);
-      if (ses != undefined) update(ses);
-      if (ses === undefined || ses.time_left <= 0) {
-        sessions.map.set(ip, newSession());
-        response.update = true;
-      }
-    } else {
+    if (ip != "") {
       sessions.map.set(ip, newSession());
       response.update = true;
     }
@@ -46,9 +39,9 @@ function update(ses: session) {
     ses.time_left = (ses.time_left * 1000 - (now() - ses.last_update)) / 1000;
     ses.last_update = now();
     if (ses.time_left <= 0) {
-        ses.expired = true;
-        ses.time_left = -1;
-        ses.last_update = -1;
+      ses.expired = true;
+      ses.time_left = -1;
+      ses.last_update = -1;
     }
   }
 }
@@ -58,9 +51,8 @@ function getAllSessions(api: app, uri: string, sessions: sessions) {
   let response = sessions;
   api.server.get(`${uri}getAllSessions`, (req: Request, res: Response) => {
     for (let i in sessions.map.keys()) {
-        let ses = sessions.map.get(i);
-        if (ses != undefined)
-            update(ses)
+      let ses = sessions.map.get(i);
+      if (ses != undefined) update(ses);
     }
     status = 200;
     res.status(status).json(response);
@@ -82,8 +74,8 @@ function getSession(api: app, uri: string, sessions: sessions) {
       if (!sessions.map.get(ip)?.expired) {
         let ses = sessions.map.get(ip);
         if (ses != undefined) {
-            update(ses);
-            response = ses;
+          update(ses);
+          response = ses;
         }
       }
     }
