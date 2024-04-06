@@ -1,12 +1,15 @@
 import { Request, Response } from "express";
 
-import { print, app, now } from "../api";
-import { escape } from "querystring";
+import { print, app, now, response } from "../api";
+
+const version = "v1";
 
 export function v1(api: app) {
   const uri: string = `${api.base_uri}v1/`;
 
   ping(api, uri);
+  getVersion(api, uri);
+
   getNow(api, uri);
   getIP(api, uri);
 
@@ -17,20 +20,27 @@ export function v1(api: app) {
 }
 
 function updateSession(api: app, uri: string, sessions: sessions) {
-  let status: number = 404;
-  let response = {
-    update: false,
-  };
+  function getResponse():response {
+    let body = {
+      update: false
+    }
+    let res: response = {
+      status: 404,
+      body: body
+    }
+    return res;
+  }
 
   api.server.get(`${uri}updateSession`, (req: Request, res: Response) => {
+    let response = getResponse();
     const ip: string = getip(req);
     if (ip != "") {
       sessions.map.set(ip, newSession());
-      response.update = true;
+      response.body.update = true;
+      response.status = 200
     }
 
-    status = 200;
-    res.status(status).json(response);
+    res.status(response.status).json(response.body);
   });
 }
 
@@ -47,41 +57,57 @@ function update(ses: session) {
 }
 
 function getAllSessions(api: app, uri: string, sessions: sessions) {
-  let status: number = 404;
-  let response = sessions;
-  api.server.get(`${uri}getAllSessions`, (req: Request, res: Response) => {
-    for (let i in sessions.map.keys()) {
-      let ses = sessions.map.get(i);
-      if (ses != undefined) update(ses);
+  function getResponse():response {
+    let body = {
+      sessions: sessions
     }
-    status = 200;
-    res.status(status).json(response);
+    let res: response = {
+      status: 404,
+      body: body
+    }
+    return res;
+  }
+
+  api.server.get(`${uri}getAllSessions`, (req: Request, res: Response) => {
+    let response = getResponse();
+    response.status = 200;
+    res.status(response.status).json(response.body);
   });
 }
 
 function getSession(api: app, uri: string, sessions: sessions) {
-  let status: number = 404;
-  let response = {
-    expired: true,
-    time_left: -1,
-    last_update: -1,
-  };
+  function getResponse():response {
+    let body = {
+      expired: true,
+      time_left: -1,
+      last_update: -1,
+    }
+    let res: response = {
+      status: 404,
+      body: body
+    }
+    return res;
+  }
 
   api.server.get(`${uri}getSession`, (req: Request, res: Response) => {
+    let response = getResponse();
     const ip = getip(req);
 
-    if (ip != "" && sessions.map.has(ip)) {
-      if (!sessions.map.get(ip)?.expired) {
-        let ses = sessions.map.get(ip);
-        if (ses != undefined) {
-          update(ses);
-          response = ses;
-        }
+    print(`Session ${ip}`);
+
+    if (ip == "") {
+      //
+    } else if (sessions.map.has(ip)) {
+      let ses = sessions.map.get(ip);
+      if (ses != undefined) {
+        update(ses);
+        print(`|_ Session found with expired = ${ses.expired}`);
+        response.status = 200;
+        response.body = ses;
       }
     }
 
-    status = 200;
-    res.status(status).json(response);
+    res.status(response.status).json(response.body);
   });
 }
 
@@ -111,7 +137,7 @@ export type session = {
   last_update: number;
 };
 
-function getip(req: Request): string {
+export function getip(req: Request): string {
   const ip: string | string[] | undefined =
     req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   if (ip != undefined) return ip as string;
@@ -119,62 +145,86 @@ function getip(req: Request): string {
 }
 
 function getIP(api: app, uri: string) {
-  let status: number = 404;
-  let response = {
-    ip: "",
-  };
+  function getResponse():response {
+    let body = {
+      ip: ""
+    }
+    let res: response = {
+      status: 404,
+      body: body
+    }
+    return res;
+  }
+
   api.server.get(`${uri}getIP`, (req: Request, res: Response) => {
+    let response = getResponse();
     const ip = getip(req);
     if (ip != "") {
-      response.ip = ip;
+      response.status = 200;
+      response.body.ip = ip;
     }
 
-    status = 200;
-    res.status(status).json(response);
+    res.status(response.status).json(response.body);
   });
 }
 
 function getNow(api: app, uri: string) {
-  let status: number = 404;
-  let response = {
-    now: -1,
-  };
+  function getResponse():response {
+    let body = {
+      now: -1
+    }
+    let res: response = {
+      status: 404,
+      body: body
+    }
+    return res;
+  }
 
   api.server.get(`${uri}now`, (req: Request, res: Response) => {
-    response.now = now();
-
-    status = 200;
-    res.status(status).json(response);
+    let response = getResponse();
+    response.body.now = now();
+    response.status = 200;
+    res.status(response.status).json(response.body);
   });
 }
 
 function getVersion(api: app, uri: string) {
-  let status: number = 404;
-  let response = {
-    version: "",
-  };
+  function getResponse():response {
+    let body = {
+      version: version
+    }
+    let res: response = {
+      status: 200,
+      body: body
+    }
+    return res;
+  }
 
   api.server.get(`${uri}getVersion`, (req: Request, res: Response) => {
-    response.version = "v1";
+    let response = getResponse();
+    res.status(response.status).json(response.body);
+  });
 
-    status = 200;
-    res.status(status).json(response);
+  api.server.get(`${uri}version`, (req: Request, res: Response) => {
+    let response = getResponse();
+    res.status(response.status).json(response.body);
   });
 }
 
 function ping(api: app, uri: string) {
-  let status: number = 404;
-  let response = {
-    ping: "pong",
-  };
+  function getResponse():response {
+    let body = {
+      ping: "pong"
+    }
+    let res: response = {
+      status: 200,
+      body: body
+    }
+    return res;
+  }
 
   api.server.get(uri, (req: Request, res: Response) => {
-    status = 200;
-    res.status(status).json(response);
-  });
-
-  api.server.get(`${uri}ping`, (req: Request, res: Response) => {
-    status = 200;
-    res.status(status).json(response);
+    let response = getResponse();
+    res.status(response.status).json(response.body);
   });
 }

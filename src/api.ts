@@ -32,3 +32,8 @@ export function now(): number {
 export function print(message: string | number | object) {
     console.log(message);
 }
+
+export type response = {
+    status: number,
+    body: any
+}
