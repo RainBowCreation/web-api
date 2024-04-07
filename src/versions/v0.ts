@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 
 import { app, response } from "../api";
 
+const version = "v0";
+
 export function v0(api: app) {
   const uri: string = `${api.base_uri}`;
 
@@ -11,24 +13,37 @@ export function v0(api: app) {
 }
 
 function getVersion(api: app, uri: string) {
-  const response = {
-    version: api.latest,
-  };
+  function getResponse():response {
+    let body = {
+      version: version
+    }
+    let res: response = {
+      status: 200,
+      body: body
+    }
+    return res;
+  }
 
   api.server.get(`${uri}getVersion`, (req: Request, res: Response) => {
-    res.status(200).json(response);
+    let response = getResponse();
+    res.status(response.status).json(response.body);
   });
 
   api.server.get(`${uri}version`, (req: Request, res: Response) => {
-    res.status(200).json(response);
+    let response = getResponse();
+    res.status(response.status).json(response.body);
   });
 
-  api.server.get(`${uri}getLastest`, (req: Request, res: Response) => {
-    res.status(200).json(response);
+  api.server.get(`${uri}getLatest`, (req: Request, res: Response) => {
+    let response = getResponse();
+    response.body.latest = api.latest;
+    res.status(response.status).json(response.body);
   });
 
-  api.server.get(`${uri}lastest`, (req: Request, res: Response) => {
-    res.status(200).json(response);
+  api.server.get(`${uri}latest`, (req: Request, res: Response) => {
+    let response = getResponse();
+    response.body.latest = api.latest;
+    res.status(response.status).json(response.body);
   });
 }
 

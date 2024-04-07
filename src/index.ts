@@ -7,7 +7,7 @@ function main() {
     api.port = 80;
     api.base_uri = "/_api/";
     api.latest = "v1";
-    api.versions = ["v1"];
+    api.versions = ["v0", "v1"];
 
     v0(api);
     v1(api);
