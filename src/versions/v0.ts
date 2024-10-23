@@ -1,21 +1,31 @@
 import { response } from "../api";
+import { DataStore } from "../utils/datastore";
+import { HttpStatusCodes as status, translateStatusCode } from "../utils/StatusCode";
 
 export class v0 {
-  private store: { [key: string]: any } = {};
+  protected dataStore: DataStore;
+
+  constructor(dataStore: DataStore) {
+    this.dataStore = dataStore;
+    this.dataStore.set("version", "v0");
+  }
 
   get = {
-    ping() {
-      return response('pong');
-    },
     get: (params: { key: string }) => {
       const { key } = params;
       if (!key) {
-        return response({error: `Key is required`});
+        return response({ error: `Key is required` }, status.BadRequest);
       }
-      if (this.store[key] !== undefined) {
-        return response({key:key, value: this.store[key]});
+      if (this.dataStore.contain(key)) {
+        return response({ key: key, value: this.dataStore.get(key) });
       }
-      return response({error: `${key}' not found`});
+      return response({ error: `${key}' not found` }, status.BadRequest);
+    },
+    ping() {
+      return this.get({key: "ping"});
+    },
+    getVersion() {
+      return this.get({key: "version"});
     },
   };
 
@@ -23,10 +33,10 @@ export class v0 {
     set: (params: { key: string; value: any }) => {
       const { key, value } = params;
       if (!key || value === undefined) {
-        return response({error: `Both 'key' and 'value' are required`});
+        return response({ error: `Both 'key' and 'value' are required` }, status.BadRequest);
       }
-      this.store[key] = value;
-      return response({key:key, value: value});
+      this.dataStore.set(key, value);
+      return response();
     },
   };
 }

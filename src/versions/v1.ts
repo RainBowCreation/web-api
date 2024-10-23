@@ -237,9 +237,8 @@ export class v1 extends v0 {
     set: (params: { key: string; value: any }) => {
       const { key, value } = params;
       const newValue = `v1_${value}`;
-      let v = new v0();
-      v.post.set({ key: key, value: newValue });
-      return response({key: key, value: newValue});
-  },
+      this.dataStore.set(key, newValue);
+      return response();
+    },
   };
 }
