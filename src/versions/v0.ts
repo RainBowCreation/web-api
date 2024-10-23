@@ -1,3 +1,4 @@
+/*
 import { Request, Response } from "express";
 
 import { app, response } from "../api";
@@ -91,4 +92,15 @@ function ping(api: app, uri: string) {
     let response = getResponse();
     res.status(response.status).json(response.body);
   });
+}
+  */
+
+export class v0 {
+  getData() {
+      return "Data from Base API";
+  }
+
+  postData(data: any) {
+      return `Posted to Base API: ${data}`;
+  }
 }

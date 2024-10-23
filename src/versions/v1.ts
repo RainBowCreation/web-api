@@ -1,3 +1,4 @@
+/*
 import { Request, Response } from "express";
 
 import { print, app, now, response } from "../api";
@@ -227,4 +228,11 @@ function ping(api: app, uri: string) {
     let response = getResponse();
     res.status(response.status).json(response.body);
   });
+}
+*/
+import { v0 }  from './v0';
+export class v1 extends v0 {
+  getData() {
+      return "Data from API Version 1";
+  }
 }
