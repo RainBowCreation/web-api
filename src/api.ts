@@ -18,7 +18,7 @@ export function newApp(): app{
         port: process.env.PORT || 3300,
         base_uri: '/',
         latest: 'v1',
-        versions: {'v1': new v1()},
+        versions: {'v0': new v0(), 'v1': new v1()},
     }
     return expressapp;
 }
@@ -48,9 +48,9 @@ export function startServer(api: app) {
     
         if (typeof (apiVersions as any)[method] === 'function') {
             const result = (apiVersions as any)[method]();
-            res.send(result);
+            res.send({body: result});
         } else {
-            res.status(404).send('Method not found');
+            res.status(404).send({body: 'Method not found'});
         }
     });
     api.server.listen(api.port, () => {

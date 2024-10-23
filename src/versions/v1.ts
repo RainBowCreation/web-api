@@ -233,6 +233,6 @@ function ping(api: app, uri: string) {
 import { v0 }  from './v0';
 export class v1 extends v0 {
   getData() {
-      return "Data from API Version 1";
+      return "Data from api version 1";
   }
 }
