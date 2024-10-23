@@ -231,8 +231,14 @@ function ping(api: app, uri: string) {
 }
 */
 import { response } from "../api";
+import { DataStore } from "../utils/DataStore";
 import { v0 } from "./v0";
 export class v1 extends v0 {
+  constructor(dataStore: DataStore) {
+    super(dataStore);
+    this.dataStore = dataStore;
+    this.dataStore.set("version", "v1");
+  }
   post = {
     set: (params: { key: string; value: any }) => {
       const { key, value } = params;

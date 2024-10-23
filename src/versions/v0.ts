@@ -1,5 +1,5 @@
 import { response } from "../api";
-import { DataStore } from "../utils/datastore";
+import { DataStore } from "../utils/DataStore";
 import { HttpStatusCodes as status, translateStatusCode } from "../utils/StatusCode";
 
 export class v0 {

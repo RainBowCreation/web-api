@@ -1,5 +1,5 @@
 import { app, newApp, startServer } from "./api";
-import { DataStore } from "./utils/datastore";
+import { DataStore } from "./utils/DataStore";
 
 function main() {
     const dataStore = new DataStore();

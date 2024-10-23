@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import {HttpStatusCodes as status, translateStatusCode} from "./utils/StatusCode";
-import { DataStore } from "./utils/datastore";
+import { DataStore } from "./utils/DataStore";
 import { v0 } from "./versions/v0";
 import { v1 } from "./versions/v1";
 
