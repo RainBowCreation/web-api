@@ -230,9 +230,16 @@ function ping(api: app, uri: string) {
   });
 }
 */
-import { v0 }  from './v0';
+import { response } from "../api";
+import { v0 } from "./v0";
 export class v1 extends v0 {
-  getData() {
-      return "Data from api version 1";
-  }
+  post = {
+    set: (params: { key: string; value: any }) => {
+      const { key, value } = params;
+      const newValue = `v1_${value}`;
+      let v = new v0();
+      v.post.set({ key: key, value: newValue });
+      return response({key: key, value: newValue});
+  },
+  };
 }
