@@ -39,4 +39,12 @@ export class v0 {
       return response();
     },
   };
+
+  delete = {
+    delete: (params: { key: string }) => {
+      const { key } = params;
+      this.dataStore.delete(key);
+      return response();
+    }
+  }
 }
