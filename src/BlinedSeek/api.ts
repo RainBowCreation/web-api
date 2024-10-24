@@ -6,6 +6,8 @@ import * as config from "./config.json";
 import { response } from "../api";
 import { STATUS } from "../ENUM/STATUS";
 import { MAPSIZE, translateMapSizeCode, translateMapSizeMessage } from "./ENUM/MAPSIZE";
+import { hashSha256 } from "../utils/Hash";
+import { raw } from "express";
 
 export class api extends v1 {
     constructor(dataStore: DataStore) {
@@ -19,22 +21,62 @@ export class api extends v1 {
         } catch (e) { console.error('BlinedSeek/api.ts/getVersion', e) };
     }
 
-    async createRoom(params: { player_id: string, room_name: string, max_player: number, difficulty: string, start_coin: number, map_size: string }) {
+    async createRoom(params: { player_id: string, room_name: string, password: string, max_player: number, difficulty: string, start_coin: number, map_size: string }) {
         try {
-            const { player_id, room_name, max_player, difficulty, start_coin, map_size } = params;
-            if (!player_id || !params) {
-                return response({error: `Params required`}, STATUS.BadRequest);
+            const { player_id, room_name, password, max_player, difficulty, start_coin, map_size } = params;
+            if (!player_id || !params || !password) {
+                return response({ error: `Params required` }, STATUS.BadRequest);
             }
+            const hasedPass = hashSha256(password);
+            const rawrooms = await this.get({ key: "roomlist" })
+            let room_list: string[] = [];
+            console.log(rawrooms)
+            if (rawrooms && rawrooms.status==STATUS.OK && rawrooms.body.value && Array.isArray(rawrooms.body.value)) {
+                console.log("passed")
+                room_list = rawrooms.body.value as string[];
+            }
+            console.log(room_list)
+            room_list.push(player_id)
+            console.log(room_list)
+            await this.set({ key: "roomlist", value: room_list, bypassTimeOut: true })
             const map = genMap({ map_size: translateMapSizeMessage(map_size) * max_player })
-            await this.set({key:`room_${player_id}`, value: {map: map, config: params, stats: {map_size_number: translateMapSizeMessage(map_size) * max_player}}, overrideTimeOut: 500});
-            return response(map);
+            await this.set({ key: `room_${player_id}`, value: { map: map, hash: hasedPass, stats: { map_size_number: translateMapSizeMessage(map_size) * max_player } }, overrideTimeOut: 500 });
+
+            return response(`room_${player_id}`);
         } catch (e) { console.error('BlinedSeek/api.ts/createRoom', e) };
+    }
+
+    async deleteRoom(params: { player_id: string, room_name: string, password: string; }) {
+        try {
+            const { player_id, room_name, password } = params;
+            if (!player_id || !params || !password) {
+                return response({ error: `Params required` }, STATUS.BadRequest);
+            }
+            const rawroom = await this.get({ key: `room_${player_id}` })
+            let roomHash: string;
+            if (rawroom && rawroom.body.hash) {
+                roomHash = rawroom.body.hash as string;
+                if (roomHash === hashSha256(password)) {
+                    await this.delete({ key: `room_${player_id}` });
+                    const rawrooms = await this.get({ key: "roomlist" })
+                    let room_list: string[] = [];
+                    if (rawrooms && rawrooms.body.value && Array.isArray(rawrooms.body.value)) {
+                        room_list = rawrooms.body.value as string[];
+                        const index = room_list.indexOf(player_id);
+                        if (index !== -1) {
+                            room_list.splice(index, 1);
+                        }
+                    }
+                    await this.set({ key: "roomlist", value: room_list, bypassTimeOut: true });
+                }
+            }
+            return response();
+        } catch (e) { console.error('BlinedSeek/api.ts/deleteRoom', e) };
     }
 
     async get(params: { key: string }) {
         try {
             const { key } = params;
-            console.log(key)
             if (!key) {
                 return response({ error: `Key is required` }, STATUS.BadRequest);
             }

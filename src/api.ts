@@ -44,7 +44,7 @@ export async function startServer(api: app) {
         api.datastore.set("port", api.port, true);
         api.datastore.set("base_uri", api.base_uri, true);
         api.datastore.set("latest", api.latest, true)
-        api.datastore.set("versions", api.versions, true);
+        //api.datastore.set("versions", api.versions, true);
 
         print("Registering api method..");
         api.server.use('/_api/:version?/:method', async (req: Request, res: Response) => {

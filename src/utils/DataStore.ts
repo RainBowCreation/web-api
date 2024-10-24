@@ -5,7 +5,7 @@ import { stringify, parse } from 'flatted';
 import { STATUS } from '../ENUM/STATUS';
 
 export class DataStore {
-    private cache: { [key: string]: { value: any, expiry: number } } = {};
+    private cache: { [key: string]: { value: any, expiry: number } | null } = {};
     private redis_enable: boolean = false;
     private redisClient;
     private pool_enable: boolean = false;
@@ -48,7 +48,7 @@ export class DataStore {
             }
         }
 
-        this.startCacheCleanup();
+        //this.startCacheCleanup();
     }
     async contain(key: string, updateCacheValue: boolean = false): Promise<boolean> {
         try {
@@ -93,13 +93,19 @@ export class DataStore {
         return Date.now() + overrideTimeOut * 1000
     }
 
+    private keyExists(key: string): boolean {
+        return this.cache[key] !== undefined && this.cache[key] !== null;
+    }
+
     // Get value from cache or Redis or MariaDB
     async get(key: string): Promise<any> {
         try {
+            console.log("Check cache");
             // Check local cache first
-            if (this.cache[key] && !this.isExpired(key)) {
-                this.resetExpiry(key, this.cache[key].value);
-                return this.cache[key].value;
+            if (this.keyExists(key) && !this.isExpired(key)) {
+                console.log("cacahed");
+                this.resetExpiry(key, this.cache[key]?.value);
+                return this.cache[key]?.value;
             }
 
             // Fallback to Redis
@@ -127,7 +133,7 @@ export class DataStore {
             if (this.pool_enable) {
                 const mariaDbValue = await this.queryMariaDB(key);
                 if (mariaDbValue) {
-                    this.resetExpiry(key, this.cache[key].value)
+                    this.resetExpiry(key, this.cache[key]?.value)
                     return mariaDbValue;
                 }
             }
@@ -138,37 +144,42 @@ export class DataStore {
 
     // Set value in both local cache and Redis
     async set(key: string, value: any, bypassTimeOut: boolean = false, overrideTimeOut: number = -1): Promise<void> {
-        try { 
+        try {
+            console.log("----------------------------")
             if (this.isCircular(value)) {
                 console.error('Circular structure detected, cannot store value:', value); // Skip storing this value
                 return;
             }
+            console.log(`${key} -- ${value} -- ${bypassTimeOut} -- ${overrideTimeOut}`)
             if (bypassTimeOut) {
+                console.log(JSON.stringify(value))
                 this.cache[key] = { value, expiry: -1 };
                 if (this.redis_enable) {
                     await this.redisClient?.set(key, JSON.stringify(value));
                 }
             }
-            else if (overrideTimeOut != -1) {
+            else if (overrideTimeOut !== -1) {
                 if (this.redis_enable) {
-                    await this.redisClient?.set(key, JSON.stringify(value), {EX: overrideTimeOut});
+                    await this.redisClient?.set(key, JSON.stringify(value), { EX: overrideTimeOut });
                 }
                 else {
-                    this.cache[key] = { value, expiry: this.calExpiry(overrideTimeOut)}
+                    this.cache[key] = { value, expiry: this.calExpiry(overrideTimeOut) }
                 }
             }
-            else if (this.cacheTimeout == -1) {
+            else if (this.cacheTimeout === -1) {
                 this.cache[key] = { value, expiry: -1 };
             }
             else if (this.redis_enable && this.redisTimeout == -1) {
                 await this.redisClient?.set(key, stringify(value));
             }
             else {
+                this.cache[key] = { value, expiry: this.calExpiry() };
                 this.resetExpiry(key, value);
             }
             if (this.pool_enable) {
                 await this.updateMariaDB(key, value); // Update MariaDB
             }
+            console.log(this.get(key))
         } catch (e) { console.error('utils/DataStore.ts/set', e) };
     }
 
@@ -244,6 +255,9 @@ export class DataStore {
             console.log(`Start cleaning..`)
             const now = Date.now();
             for (const key in this.cache) {
+                if (this.cache[key] === null) {
+                    continue;
+                }
                 console.log(` |_ ${key}`)
                 if (this.cache[key].expiry == -1) {
                     console.log(`  |_ skipped`)
@@ -269,7 +283,9 @@ export class DataStore {
     private async resetExpiry(key: string, value: any) {
         try {
             if (await this.contain(key)) {
-                if (this.cache[key].expiry != -1) {
+                console.log(key)
+                console.log(this.cache[key]);
+                if (this.cache[key]?.expiry != -1) {
                     this.cache[key] = { value, expiry: this.calExpiry() };
                     if (this.redis_enable) {
                         await this.redisClient?.set(key, JSON.stringify(value), { EX: this.redisTimeout });
@@ -282,15 +298,15 @@ export class DataStore {
                     await this.redisClient?.set(key, stringify(value), { EX: this.redisTimeout });
                 }
             }
-        } catch (e) { console.error('utils/DataStore.ts/updateExpiry', e) };
+        } catch (e) { console.error('utils/DataStore.ts/resetExpiry', e) };
     }
 
     private isCircular(value: any): boolean {
-    try {
-        JSON.stringify(value);
-        return false;
-    } catch (err) {
-        return true;
+        try {
+            JSON.stringify(value);
+            return false;
+        } catch (err) {
+            return true;
+        }
     }
-}
 }
