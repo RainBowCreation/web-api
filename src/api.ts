@@ -5,7 +5,7 @@ import { v0 } from "./versions/v0";
 import { v1 } from "./versions/v1";
 
 const port = 3300;
-const name = "rbc";
+const name = "RainBowCreation";
 const base_uri = "/";
 const latest = "v1";
 const versions = ["v0", "v1"];
@@ -21,11 +21,12 @@ export type app = {
 };
 
 export function newApp(dataStore: DataStore): app {
-    dataStore.set("ping", "pong");
-    dataStore.set("name", name);
-    dataStore.set("port", port);
-    dataStore.set("base_uri", base_uri);
-    dataStore.set("versions", versions);
+    dataStore.set("ping", "pong", true);
+    dataStore.set("name", name, true);
+    dataStore.set("port", port, true);
+    dataStore.set("base_uri", base_uri, true);
+    dataStore.set("latest", latest, true)
+    dataStore.set("versions", versions, true);
     let expressApp: app = {
         name: name,
         server: express(),
@@ -82,7 +83,7 @@ export async function startServer(api: app) {
                     } catch (error) {
                         return res.status(status.InternalServerError).send({ body: { error: translateStatusCode(status.InternalServerError) } });
                     }
-                } catch (e) { console.error('startServer') };
+                } catch (e) { console.error('api.ts/startServer/api.server.all',e) };
             }
         );
 
@@ -92,7 +93,7 @@ export async function startServer(api: app) {
                 `Server ${api.name} running at http://localhost:${api.port}${api.base_uri}`
             );
         });
-    } catch (e) { console.error(e) };
+    } catch (e) { console.error('api.ts/startServer',e) };
 }
 
 export function now(): number {

@@ -1,6 +1,12 @@
 {
+    "api": {
+        "name": "RainBowCreation",
+        "port": 3300,
+        "base_uri": "/"
+    },
     "cache": {
-        "timeout": 0
+        "timeout": -1,
+        "interval": 60
     },
     "redis": {
         "enable": false,
@@ -9,7 +15,7 @@
             "username": "",
             "password": ""
         },
-        "timeout": 0
+        "timeout": -1
     },
     "mariadb": {
         "enable": false,

@@ -1,13 +1,13 @@
 import { response } from "../api";
 import { DataStore } from "../utils/DataStore";
-import { HttpStatusCodes as status, translateStatusCode } from "../utils/StatusCode";
+import { HttpStatusCodes as status } from "../utils/StatusCode";
 
 export class v0 {
   protected dataStore: DataStore;
 
   constructor(dataStore: DataStore) {
     this.dataStore = dataStore;
-    this.dataStore.set("version", "v0");
+    this.dataStore.set("version", "v0", true);
   }
 
   get = {
@@ -21,17 +21,17 @@ export class v0 {
           return response({ key: key, value: await this.dataStore.get(key) });
         }
         return response({ error: `${key}' not found` }, status.BadRequest);
-      } catch (e) { console.error('get') };
+      } catch (e) { console.error('versions/v0.ts/get',e) };
     },
     async ping() {
       try {
         return this.get({ key: "ping" });
-      } catch (e) { console.error('ping') };
+      } catch (e) { console.error('versions/v0.ts/ping',e) };
     },
     async getVersion() {
       try {
         return this.get({ key: "version" });
-      } catch (e) { console.error('getVersion') };
+      } catch (e) { console.error('versions/v0.ts/getVersion',e) };
     },
   };
 
@@ -44,7 +44,7 @@ export class v0 {
         }
         this.dataStore.set(key, value);
         return response();
-      } catch (e) { console.error('set') };
+      } catch (e) { console.error('versions/v0.ts/set',e) };
     },
   };
 
@@ -54,7 +54,7 @@ export class v0 {
         const { key } = params;
         await this.dataStore.delete(key);
         return response();
-      } catch (e) { console.error('delete') };
+      } catch (e) { console.error('versions/v0.ts/delete',e) };
     }
   }
 }
