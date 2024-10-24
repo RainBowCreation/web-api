@@ -100,19 +100,20 @@ export class DataStore {
     // Get value from cache or Redis or MariaDB
     async get(key: string): Promise<any> {
         try {
-            console.log("Check cache");
+            console.log(`DataStore--get(${key})`);
             // Check local cache first
             if (this.keyExists(key) && !this.isExpired(key)) {
-                console.log("cacahed");
+                console.log(" |_ cached found");
                 this.resetExpiry(key, this.cache[key]?.value);
                 return this.cache[key]?.value;
             }
 
             // Fallback to Redis
             if (this.redis_enable) {
+                console.error(` |_ detect redis enabled, checking redis cache..`);
                 const rawValue = await this.redisClient?.get(key);
                 if (rawValue === null || rawValue === undefined) {
-                    console.error(`No value found for key: ${key}`);
+                    console.error(`  |_ no redis cache for key: ${key}`);
                     return null; // or handle this case as needed
                 }
 
@@ -120,7 +121,7 @@ export class DataStore {
                 try {
                     redisValue = JSON.parse(rawValue); // Now we can safely parse
                 } catch (e) {
-                    console.error('Failed to parse value from Redis:', e);
+                    console.error('  |_ Failed to parse value from Redis:', e);
                     return null; // or handle the error appropriately
                 }
                 if (redisValue !== null) {
@@ -145,41 +146,50 @@ export class DataStore {
     // Set value in both local cache and Redis
     async set(key: string, value: any, bypassTimeOut: boolean = false, overrideTimeOut: number = -1): Promise<void> {
         try {
-            console.log("----------------------------")
+            console.log(`DataStore--set(${key}, ${value}, ${bypassTimeOut}, ${overrideTimeOut})`);
             if (this.isCircular(value)) {
-                console.error('Circular structure detected, cannot store value:', value); // Skip storing this value
+                console.error(` |_${key} Circular structure detected, cannot store value:`, value); // Skip storing this value
                 return;
             }
-            console.log(`${key} -- ${value} -- ${bypassTimeOut} -- ${overrideTimeOut}`)
+            
             if (bypassTimeOut) {
-                console.log(JSON.stringify(value))
+                console.log(` |_${key} BypassTimeout detected, saving to cache..`);
                 this.cache[key] = { value, expiry: -1 };
                 if (this.redis_enable) {
+                    console.log(`  |_${key} Redis detected, strinifying to ${JSON.stringify(value)}`);
                     await this.redisClient?.set(key, JSON.stringify(value));
                 }
             }
             else if (overrideTimeOut !== -1) {
+                console.log(` |_${key} OverrideTimeout detected.`);
                 if (this.redis_enable) {
+                    console.log(`  |_${key} Redis detected, Chaining with redis...`);
                     await this.redisClient?.set(key, JSON.stringify(value), { EX: overrideTimeOut });
                 }
                 else {
+                    console.log(`  |_${key} Chaining with cache...`);
                     this.cache[key] = { value, expiry: this.calExpiry(overrideTimeOut) }
                 }
             }
             else if (this.cacheTimeout === -1) {
+                console.log(` |_${key} config was set to -1, disabling timeout..`);
                 this.cache[key] = { value, expiry: -1 };
             }
             else if (this.redis_enable && this.redisTimeout == -1) {
+                console.log(` |_${key} config was set redis timeout to -1, disabling timeout..`);
                 await this.redisClient?.set(key, stringify(value));
             }
             else {
+                console.log(` |_${key} Normal saved with default config..`);
                 this.cache[key] = { value, expiry: this.calExpiry() };
+                console.log(` |_${key} ResetExpiry..`);
                 this.resetExpiry(key, value);
             }
             if (this.pool_enable) {
+                console.log(` |_${key} Database detected, saving to pool...`);
                 await this.updateMariaDB(key, value); // Update MariaDB
             }
-            console.log(this.get(key))
+            console.log(`DataStore--set(${key}, ${value})--DONE!!`);
         } catch (e) { console.error('utils/DataStore.ts/set', e) };
     }
 
