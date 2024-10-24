@@ -1,4 +1,5 @@
 /dist/
 /.vscode/
 /node_modules/
-myconfig.json
+/src/myconfig.json
+/BlinedSeek/myconfig.json

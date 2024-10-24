@@ -1,5 +1,5 @@
 // httpStatusCodes.ts
-export enum HttpStatusCodes {
+export enum STATUS {
     Continue = 100,
     SwitchingProtocols = 101,
     OK = 200,
@@ -45,13 +45,13 @@ export enum HttpStatusCodes {
 }
 
 // Function to translate status code to message
-export function translateStatusCode(code: HttpStatusCodes): string {
-    const entry = Object.entries(HttpStatusCodes).find(([_, value]) => value === code);
+export function translateStatusCode(code: STATUS): string {
+    const entry = Object.entries(STATUS).find(([_, value]) => value === code);
     return entry ? entry[0] : 'Unknown Status Code';
 }
 
 // Function to translate status message to code
-export function translateStatusMessage(message: string): HttpStatusCodes | -1 {
-    const entry = Object.entries(HttpStatusCodes).find(([key, msg]) => msg === message);
-    return entry ? parseInt(entry[0], 10) as HttpStatusCodes : -1;
+export function translateStatusMessage(message: string): STATUS | -1 {
+    const entry = Object.entries(STATUS).find(([key, msg]) => msg === message);
+    return entry ? parseInt(entry[0], 10) as STATUS : -1;
 }

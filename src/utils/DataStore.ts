@@ -99,9 +99,21 @@ export class DataStore {
 
             // Fallback to Redis
             if (this.redis_enable) {
-                const redisValue = await this.redisClient?.get(key);
+                const rawValue = await this.redisClient?.get(key);
+                if (rawValue === null || rawValue === undefined) {
+                    console.error(`No value found for key: ${key}`);
+                    return null; // or handle this case as needed
+                }
+
+                let redisValue;
+                try {
+                    redisValue = JSON.parse(rawValue); // Now we can safely parse
+                } catch (e) {
+                    console.error('Failed to parse value from Redis:', e);
+                    return null; // or handle the error appropriately
+                }
                 if (redisValue !== null) {
-                    this.resetExpiry(key, this.cache[key].value)
+                    this.resetExpiry(key, redisValue)
                     return redisValue;
                 }
             }
@@ -125,14 +137,14 @@ export class DataStore {
             if (bypassTimeOut) {
                 this.cache[key] = { value, expiry: -1 };
                 if (this.redis_enable) {
-                    await this.redisClient?.set(key, value);
+                    await this.redisClient?.set(key, JSON.stringify(value));
                 }
             }
             else if (this.cacheTimeout == -1) {
                 this.cache[key] = { value, expiry: -1 };
             }
             else if (this.redis_enable && this.redisTimeout == -1) {
-                await this.redisClient?.set(key, value);
+                await this.redisClient?.set(key, JSON.stringify(value));
             }
             else {
                 this.resetExpiry(key, value);
@@ -243,14 +255,14 @@ export class DataStore {
                 if (this.cache[key].expiry != -1) {
                     this.cache[key] = { value, expiry: this.calExpiry() };
                     if (this.redis_enable) {
-                        await this.redisClient?.set(key, value, { EX: this.redisTimeout });
+                        await this.redisClient?.set(key, JSON.stringify(value), { EX: this.redisTimeout });
                     }
                 }
             }
-            else if (this.cacheTimeout != -1){
+            else if (this.cacheTimeout != -1) {
                 this.cache[key] = { value, expiry: this.calExpiry() };
                 if (this.redis_enable && this.redisTimeout != -1) {
-                    await this.redisClient?.set(key, value, { EX: this.redisTimeout });
+                    await this.redisClient?.set(key, JSON.stringify(value), { EX: this.redisTimeout });
                 }
             }
         } catch (e) { console.error('utils/DataStore.ts/updateExpiry', e) };
