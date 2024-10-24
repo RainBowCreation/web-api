@@ -26,7 +26,7 @@ export class api extends v1 {
                 return response({error: `Params required`}, STATUS.BadRequest);
             }
             const map = genMap({ map_size: translateMapSizeMessage(map_size) * max_player })
-            await this.set({key:`room_${player_id}`, value: {map: map, config: params}});
+            await this.set({key:`room_${player_id}`, value: {map: map, config: params, stats: {map_size_number: translateMapSizeMessage(map_size) * max_player}}, overrideTimeOut: 500});
             return response(map);
         } catch (e) { console.error('BlinedSeek/api.ts/createRoom', e) };
     }
@@ -46,13 +46,21 @@ export class api extends v1 {
         } catch (e) { console.error('BlinedSeek/api.ts/get', e) };
     }
 
-    async set(params: { key: string, value: any }) {
+    async set(params: { key: string, value: any, bypassTimeOut?: boolean, overrideTimeOut?: number }) {
         try {
-            const { key, value } = params;
+            const { key, value, bypassTimeOut, overrideTimeOut } = params;
             if (!key || value === undefined) {
                 return response({ error: `Both 'key' and 'value' are required` }, STATUS.BadRequest);
             }
-            this.dataStore.set(this.modifyKey(key), value);
+            let newBypassTimeOut = bypassTimeOut;
+            if (!bypassTimeOut) {
+                newBypassTimeOut = false;
+            }
+            let newOverrideTimeOut = overrideTimeOut;
+            if (!overrideTimeOut) {
+                newOverrideTimeOut = -1;
+            }
+            this.dataStore.set(this.modifyKey(key), value, newBypassTimeOut, newOverrideTimeOut);
             return response();
         } catch (e) { console.error('BlinedSeek/api.ts/set', e) };
     }

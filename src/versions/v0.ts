@@ -34,13 +34,21 @@ export class v0 {
     } catch (e) { console.error('versions/v0.ts/getVersion', e) };
   }
 
-  async set(params: { key: string, value: any }) {
+  async set(params: { key: string, value: any, bypassTimeOut?: boolean, overrideTimeOut?: number }) {
     try {
-      const { key, value } = params;
+      const { key, value, bypassTimeOut, overrideTimeOut } = params;
       if (!key || value === undefined) {
         return response({ error: `Both 'key' and 'value' are required` }, STATUS.BadRequest);
       }
-      this.dataStore.set(key, value);
+      let newBypassTimeOut = bypassTimeOut;
+      if (!bypassTimeOut) {
+        newBypassTimeOut = false;
+      }
+      let newOverrideTimeOut = overrideTimeOut;
+      if (!overrideTimeOut) {
+        newOverrideTimeOut = -1;
+      }
+      this.dataStore.set(key, value, newBypassTimeOut, newOverrideTimeOut);
       return response();
     } catch (e) { console.error('versions/v0.ts/set', e) };
   }

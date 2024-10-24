@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "api": "file:",
+    "flatted": "^3.3.1",
     "mariadb": "^3.3.2",
     "npm": "^10.5.0",
     "redis": "^4.7.0"

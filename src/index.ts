@@ -2,7 +2,7 @@
 import { app, newApp, startServer } from "./api";
 import { DataStore } from "./utils/DataStore";
 import { genMap } from "./BlinedSeek/utils/genMap";
-import * as config from "./myconfig.json";
+import * as config from "./config.json";
 
 async function main() {
     let dataStore: DataStore;

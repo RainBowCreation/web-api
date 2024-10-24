@@ -1,6 +1,8 @@
 import mariadb from 'mariadb';
 import * as redis from 'redis';
 import { buffer } from 'stream/consumers';
+import { stringify, parse } from 'flatted';
+import { STATUS } from '../ENUM/STATUS';
 
 export class DataStore {
     private cache: { [key: string]: { value: any, expiry: number } } = {};
@@ -84,8 +86,11 @@ export class DataStore {
         return cachedItem ? (Date.now() > cachedItem.expiry) : true;
     }
 
-    private calExpiry(): number {
-        return Date.now() + this.cacheTimeout * 1000
+    private calExpiry(overrideTimeOut: number = -1): number {
+        if (overrideTimeOut <= -1) {
+            return Date.now() + this.cacheTimeout * 1000
+        }
+        return Date.now() + overrideTimeOut * 1000
     }
 
     // Get value from cache or Redis or MariaDB
@@ -132,19 +137,31 @@ export class DataStore {
     }
 
     // Set value in both local cache and Redis
-    async set(key: string, value: any, bypassTimeOut: boolean = false): Promise<void> {
-        try {
+    async set(key: string, value: any, bypassTimeOut: boolean = false, overrideTimeOut: number = -1): Promise<void> {
+        try { 
+            if (this.isCircular(value)) {
+                console.error('Circular structure detected, cannot store value:', value); // Skip storing this value
+                return;
+            }
             if (bypassTimeOut) {
                 this.cache[key] = { value, expiry: -1 };
                 if (this.redis_enable) {
                     await this.redisClient?.set(key, JSON.stringify(value));
                 }
             }
+            else if (overrideTimeOut != -1) {
+                if (this.redis_enable) {
+                    await this.redisClient?.set(key, JSON.stringify(value), {EX: overrideTimeOut});
+                }
+                else {
+                    this.cache[key] = { value, expiry: this.calExpiry(overrideTimeOut)}
+                }
+            }
             else if (this.cacheTimeout == -1) {
                 this.cache[key] = { value, expiry: -1 };
             }
             else if (this.redis_enable && this.redisTimeout == -1) {
-                await this.redisClient?.set(key, JSON.stringify(value));
+                await this.redisClient?.set(key, stringify(value));
             }
             else {
                 this.resetExpiry(key, value);
@@ -262,9 +279,18 @@ export class DataStore {
             else if (this.cacheTimeout != -1) {
                 this.cache[key] = { value, expiry: this.calExpiry() };
                 if (this.redis_enable && this.redisTimeout != -1) {
-                    await this.redisClient?.set(key, JSON.stringify(value), { EX: this.redisTimeout });
+                    await this.redisClient?.set(key, stringify(value), { EX: this.redisTimeout });
                 }
             }
         } catch (e) { console.error('utils/DataStore.ts/updateExpiry', e) };
     }
+
+    private isCircular(value: any): boolean {
+    try {
+        JSON.stringify(value);
+        return false;
+    } catch (err) {
+        return true;
+    }
+}
 }
