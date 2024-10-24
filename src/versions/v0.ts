@@ -34,7 +34,7 @@ export class v0 {
     } catch (e) { console.error('versions/v0.ts/getVersion', e) };
   }
 
-  async set(params: { key: string; value: any }) {
+  async set(params: { key: string, value: any }) {
     try {
       const { key, value } = params;
       if (!key || value === undefined) {
