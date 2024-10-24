@@ -1,13 +1,16 @@
 import { app, newApp, startServer } from "./api";
 import { DataStore } from "./utils/DataStore";
+import * as config from "../config.json";
 
-function main() {
-    const dataStore = new DataStore();
-    const api: app = newApp(dataStore);
-    api.port = 80;
-    api.base_uri = "/_api/";
+async function main() {
+    try {
+        const dataStore = new DataStore(config.redis, config.mariadb);
+        const api: app = newApp(dataStore);
+        api.port = 80;
+        api.base_uri = "/_api/";
 
-    startServer(api);
+        await startServer(api);
+    } catch (e) { console.error('main') };
 }
 
 main();

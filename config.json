@@ -1,0 +1,23 @@
+{
+    "cache": {
+        "timeout": 0
+    },
+    "redis": {
+        "enable": false,
+        "config": {
+            "url": "",
+            "username": "",
+            "password": ""
+        },
+        "timeout": 0
+    },
+    "mariadb": {
+        "enable": false,
+        "config": {
+            "host": "",
+            "user": "",
+            "password": "",
+            "database": ""
+        }
+    }
+}

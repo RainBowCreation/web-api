@@ -11,40 +11,50 @@ export class v0 {
   }
 
   get = {
-    get: (params: { key: string }) => {
-      const { key } = params;
-      if (!key) {
-        return response({ error: `Key is required` }, status.BadRequest);
-      }
-      if (this.dataStore.contain(key)) {
-        return response({ key: key, value: this.dataStore.get(key) });
-      }
-      return response({ error: `${key}' not found` }, status.BadRequest);
+    get: async (params: { key: string }) => {
+      try {
+        const { key } = params;
+        if (!key) {
+          return response({ error: `Key is required` }, status.BadRequest);
+        }
+        if (await this.dataStore.contain(key, true)) {
+          return response({ key: key, value: await this.dataStore.get(key) });
+        }
+        return response({ error: `${key}' not found` }, status.BadRequest);
+      } catch (e) { console.error('get') };
     },
-    ping() {
-      return this.get({key: "ping"});
+    async ping() {
+      try {
+        return this.get({ key: "ping" });
+      } catch (e) { console.error('ping') };
     },
-    getVersion() {
-      return this.get({key: "version"});
+    async getVersion() {
+      try {
+        return this.get({ key: "version" });
+      } catch (e) { console.error('getVersion') };
     },
   };
 
   post = {
-    set: (params: { key: string; value: any }) => {
-      const { key, value } = params;
-      if (!key || value === undefined) {
-        return response({ error: `Both 'key' and 'value' are required` }, status.BadRequest);
-      }
-      this.dataStore.set(key, value);
-      return response();
+    set: async (params: { key: string; value: any }) => {
+      try {
+        const { key, value } = params;
+        if (!key || value === undefined) {
+          return response({ error: `Both 'key' and 'value' are required` }, status.BadRequest);
+        }
+        this.dataStore.set(key, value);
+        return response();
+      } catch (e) { console.error('set') };
     },
   };
 
   delete = {
-    delete: (params: { key: string }) => {
-      const { key } = params;
-      this.dataStore.delete(key);
-      return response();
+    delete: async (params: { key: string }) => {
+      try {
+        const { key } = params;
+        await this.dataStore.delete(key);
+        return response();
+      } catch (e) { console.error('delete') };
     }
   }
 }

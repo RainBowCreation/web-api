@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import {HttpStatusCodes as status, translateStatusCode} from "./utils/StatusCode";
+import { HttpStatusCodes as status, translateStatusCode } from "./utils/StatusCode";
 import { DataStore } from "./utils/DataStore";
 import { v0 } from "./versions/v0";
 import { v1 } from "./versions/v1";
@@ -38,57 +38,61 @@ export function newApp(dataStore: DataStore): app {
     return expressApp;
 }
 
-export function startServer(api: app) {
-    print("Setting up json express..");
-    api.server.use(express.json());
+export async function startServer(api: app) {
+    try {
+        print("Setting up json express..");
+        api.server.use(express.json());
 
-    print("Registering api method..");
-    api.server.all(
-        `${api.base_uri}:version?/:method`,
-        (req: Request, res: Response) => {
-            const { version, method } = req.params;
-            const params = req.query;
-            let apiVersions: v0;
+        print("Registering api method..");
+        api.server.all(
+            `${api.base_uri}:version?/:method`,
+            async (req: Request, res: Response) => {
+                try {
+                    const { version, method } = req.params;
+                    const params = req.query;
+                    let apiVersions: v0;
 
-            if (version && api.versions[version]) {
-                apiVersions = api.versions[version];
-            } else {
-                apiVersions = api.versions[api.latest];
+                    if (version && api.versions[version]) {
+                        apiVersions = api.versions[version];
+                    } else {
+                        apiVersions = api.versions[api.latest];
+                    }
+
+                    try {
+                        const apiInstance: any = apiVersions;
+                        let result: response;
+                        if (req.method === "GET" && apiInstance.get[method]) {
+                            result = await apiInstance.get[method](params);
+                        } else if (req.method === "POST" && apiInstance.post[method]) {
+                            result = await apiInstance.post[method](params);
+                        } else if (req.method === "PUT" && apiInstance.put[method]) {
+                            result = await apiInstance.put[method](params);
+                        } else if (req.method === "PATCH" && apiInstance.patch[method]) {
+                            result = await apiInstance.patch[method](params);
+                        } else if (req.method === "DELETE" && apiInstance.delete[method]) {
+                            result = await apiInstance.delete[method](params);
+                        } else if (req.method === "HEAD" && apiInstance.head[method]) {
+                            result = await apiInstance.head[method](params);
+                        } else if (req.method === "OPTIONS" && apiInstance.options[method]) {
+                            result = await apiInstance.options[method](params);
+                        } else {
+                            return res.status(status.NotFound).send({ body: { error: translateStatusCode(status.NotFound) } });
+                        }
+                        return res.status(result.status).send({ body: result.body });
+                    } catch (error) {
+                        return res.status(status.InternalServerError).send({ body: { error: translateStatusCode(status.InternalServerError) } });
+                    }
+                } catch (e) { console.error('startServer') };
             }
-
-            try {
-                const apiInstance: any = apiVersions;
-                let result: response;
-                if (req.method === "GET" && apiInstance.get[method]) {
-                    result = apiInstance.get[method](params);
-                } else if (req.method === "POST" && apiInstance.post[method]) {
-                    result = apiInstance.post[method](params);
-                } else if (req.method === "PUT" && apiInstance.put[method]) {
-                    result = apiInstance.put[method](params);
-                } else if (req.method === "PATCH" && apiInstance.patch[method]) {
-                    result = apiInstance.patch[method](params);
-                } else if (req.method === "DELETE" && apiInstance.delete[method]) {
-                    result = apiInstance.delete[method](params);
-                } else if (req.method === "HEAD" && apiInstance.head[method]) {
-                    result = apiInstance.head[method](params);
-                } else if (req.method === "OPTIONS" && apiInstance.options[method]) {
-                    result = apiInstance.options[method](params);
-                } else {
-                    return res.status(status.NotFound).send({ body: { error: translateStatusCode(status.NotFound) }});
-                }
-                return res.status(result.status).send({ body: result.body });
-            } catch (error) {
-                return res.status(status.InternalServerError).send({ body: { error: translateStatusCode(status.InternalServerError) } });
-            }
-        }
-    );
-
-    print("Starting server..");
-    api.server.listen(api.port, () => {
-        print(
-            `Server ${api.name} running at http://localhost:${api.port}${api.base_uri}`
         );
-    });
+
+        print("Starting server..");
+        api.server.listen(api.port, () => {
+            print(
+                `Server ${api.name} running at http://localhost:${api.port}${api.base_uri}`
+            );
+        });
+    } catch (e) { console.error(e) };
 }
 
 export function now(): number {

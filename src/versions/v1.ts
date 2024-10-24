@@ -240,11 +240,13 @@ export class v1 extends v0 {
     this.dataStore.set("version", "v1");
   }
   post = {
-    set: (params: { key: string; value: any }) => {
-      const { key, value } = params;
-      const newValue = `v1_${value}`;
-      this.dataStore.set(key, newValue);
-      return response();
+    set: async (params: { key: string; value: any }) => {
+      try {
+        const { key, value } = params;
+        const newValue = `v1_${value}`;
+        this.dataStore.set(key, newValue);
+        return response();
+      } catch (e) { console.error('set') };
     },
   };
 }
