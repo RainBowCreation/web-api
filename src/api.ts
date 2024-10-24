@@ -3,7 +3,8 @@ import { STATUS, translateStatusCode } from "./ENUM/STATUS";
 import { DataStore } from "./utils/DataStore";
 import { v0 } from "./versions/v0";
 import { v1 } from "./versions/v1";
-import { api as BlinedSeek } from "./BlinedSeek/api";
+import { api, api as BlinedSeek } from "./BlinedSeek/api";
+import { Logger } from "./log/Logger";
 
 const port = 3300;
 const name = "RainBowCreation";
@@ -19,9 +20,10 @@ export type app = {
     latest: string;
     datastore: DataStore;
     versions: { [key: string]: v0 };
+    logger: Logger;
 };
 
-export function newApp(dataStore: DataStore): app {
+export function newApp(dataStore: DataStore, logger: Logger): app {
     dataStore.set("ping", "pong", true);
     let expressApp: app = {
         name: name,
@@ -31,22 +33,22 @@ export function newApp(dataStore: DataStore): app {
         latest: latest,
         datastore: dataStore,
         versions: { v0: new v0(dataStore), v1: new v1(dataStore) , BlinedSeek: new BlinedSeek(dataStore)},
+        logger: logger
     };
     return expressApp;
 }
 
 export async function startServer(api: app) {
     try {
-        print("Setting up json express..");
+        api.logger.info("Setting up json express..");
         api.server.use(express.json());
 
         api.datastore.set("name", api.name, true);
         api.datastore.set("port", api.port, true);
         api.datastore.set("base_uri", api.base_uri, true);
         api.datastore.set("latest", api.latest, true)
-        //api.datastore.set("versions", api.versions, true);
 
-        print("Registering api method..");
+        api.logger.info("Registering api method..");
         api.server.use('/_api/:version?/:method', async (req: Request, res: Response) => {
             try {
                 const { version, method } = req.params;
@@ -70,68 +72,19 @@ export async function startServer(api: app) {
                     } else {
                         res.status(STATUS.NotFound).send(translateStatusCode(STATUS.NotFound));
                     }
-                } catch (e) { console.error('api.ts/startServer/api.server.use.try', e) };
-            } catch (e) { console.error('api.ts/startServer/api.server.use', e) };
+                } catch (e) { api.logger.error('server.use.try', e) };
+            } catch (e) { api.logger.error('server.use', e) };
         });
-        /*
-        api.server.all(
-            `${api.base_uri}:version?/:method`,
-            async (req: Request, res: Response) => {
-                try {
-                    const { version, method } = req.params;
-                    const params = req.query;
-                    let apiVersions: v0;
 
-                    if (version && api.versions[version]) {
-                        apiVersions = api.versions[version];
-                    } else {
-                        apiVersions = api.versions[api.latest];
-                    }
-
-                    try {
-                        const apiInstance: any = apiVersions;
-                        let result: response;
-                        if (req.method === "GET" && apiInstance.get[method]) {
-                            result = await apiInstance.get[method](params);
-                        } else if (req.method === "POST" && apiInstance.post[method]) {
-                            result = await apiInstance.post[method](params);
-                        } else if (req.method === "PUT" && apiInstance.put[method]) {
-                            result = await apiInstance.put[method](params);
-                        } else if (req.method === "PATCH" && apiInstance.patch[method]) {
-                            result = await apiInstance.patch[method](params);
-                        } else if (req.method === "DELETE" && apiInstance.delete[method]) {
-                            result = await apiInstance.delete[method](params);
-                        } else if (req.method === "HEAD" && apiInstance.head[method]) {
-                            result = await apiInstance.head[method](params);
-                        } else if (req.method === "OPTIONS" && apiInstance.options[method]) {
-                            result = await apiInstance.options[method](params);
-                        } else {
-                            return res.status(status.NotFound).send({ body: { error: translateStatusCode(status.NotFound) } });
-                        }
-                        return res.status(result.status).send({ body: result.body });
-                    } catch (error) {
-                        return res.status(status.InternalServerError).send({ body: { error: translateStatusCode(status.InternalServerError) } });
-                    }
-                } catch (e) { console.error('api.ts/startServer/api.server.all',e) };
-            }
-        );
-        */
-
-        print("Starting server..");
+        api.logger.info("Starting server..");
         api.server.listen(api.port, () => {
-            print(
-                `Server ${api.name} running at http://localhost:${api.port}${api.base_uri}`
-            );
+            api.logger.info(`Server ${api.name} running at http://localhost:${api.port}${api.base_uri}`);
         });
-    } catch (e) { console.error('api.ts/startServer', e) };
+    } catch (e) { api.logger.error(``, e) };
 }
 
 export function now(): number {
     return Date.now();
-}
-
-export function print(message: string | number | object) {
-    console.log(message);
 }
 
 export type response = {

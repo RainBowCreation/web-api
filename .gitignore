@@ -3,3 +3,4 @@
 /node_modules/
 /src/myconfig.json
 /BlinedSeek/myconfig.json
+/log/*.log

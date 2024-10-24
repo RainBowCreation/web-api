@@ -3,13 +3,19 @@ import { app, newApp, startServer } from "./api";
 import { DataStore } from "./utils/DataStore";
 import { genMap } from "./BlinedSeek/utils/genMap";
 import * as config from "./myconfig.json";
+import { Logger } from "./log/Logger";
+
+const start_time = (new Date().toLocaleTimeString()).replace(/:/g, '_');
+console.log(start_time)
+const logger = new Logger(`${start_time}.log`);
+logger.info("Starting program..");
 
 async function main() {
     let dataStore: DataStore;
     let api: app;
     try {
-        dataStore = new DataStore(config.redis, config.mariadb, config.cache.timeout, config.cache.interval);
-        api = newApp(dataStore);
+        dataStore = new DataStore(config.redis, config.mariadb, config.cache.timeout, config.cache.interval, logger);
+        api = newApp(dataStore, logger);
         api.port = config.api.port;
         api.base_uri = config.api.base_uri;
 
@@ -17,12 +23,12 @@ async function main() {
     } catch (e) { console.error('index.ts/main', e) };
 
     process.on('SIGINT', async () => {
-        console.log('SIGINT received: Closing the DataStore');
+        logger.info('SIGINT received: Closing the DataStore');
         exit(api);
     });
 
     process.on('SIGTERM', async () => {
-        console.log('SIGTERM received: Closing the DataStore');
+        logger.info('SIGTERM received: Closing the DataStore');
         exit(api);
     });
 }
@@ -45,22 +51,3 @@ process.exit(0);
 }
 
 main();
-//test();
-/*
-import express from "express";
-import { v0Router } from "./routers/v0";
-import { v1Router } from "./routers/v1";
-
-const app = express();
-
-app.use('/api/v0', v0Router);
-app.use('/api/v1', v1Router);
-
-app.use('/api/', v1Router);
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-*/

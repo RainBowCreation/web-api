@@ -7,11 +7,12 @@ export class v1 extends v0 {
   constructor(dataStore: DataStore) {
     super(dataStore);
     this.dataStore = dataStore;
+    this.logger = dataStore.logger;
   }
 
   async getVersion() {
     try {
       return response("v1");
-    } catch (e) { console.error('versions/v1.ts/getVersion', e) };
+    } catch (e) { this.logger.error('versions/v1.ts/getVersion', e) };
   }
 }

@@ -1,19 +1,21 @@
-import { error } from "console";
 import { response } from "../api";
 import { DataStore } from "../utils/DataStore";
 import { STATUS } from "../ENUM/STATUS";
+import { Logger } from "../log/Logger";
 
 export class v0 {
   protected dataStore: DataStore;
+  protected logger: Logger;
 
   constructor(dataStore: DataStore) {
     this.dataStore = dataStore;
+    this.logger = dataStore.logger;
   }
 
   async get(params: { key: string }) {
     try {
       const { key } = params;
-      console.log(key)
+      this.logger.info(key)
       if (!key) {
         return response({ error: `Key is required` }, STATUS.BadRequest);
       }
@@ -21,17 +23,17 @@ export class v0 {
         return response({ key: key, value: await this.dataStore.get(key) });
       }
       return response({ error: `${key}' not found` }, STATUS.BadRequest);
-    } catch (e) { console.error('versions/v0.ts/get', e) };
+    } catch (e) { this.logger.error('versions/v0.ts/get', e) };
   }
   async ping() {
     try {
       return this.get({ key: "ping" });
-    } catch (e) { console.error('versions/v0.ts/ping', e) };
+    } catch (e) { this.logger.error('versions/v0.ts/ping', e) };
   }
   async getVersion() {
     try {
       return response("v0");
-    } catch (e) { console.error('versions/v0.ts/getVersion', e) };
+    } catch (e) { this.logger.error('versions/v0.ts/getVersion', e) };
   }
 
   async set(params: { key: string, value: any, bypassTimeOut?: boolean, overrideTimeOut?: number }) {
@@ -50,7 +52,7 @@ export class v0 {
       }
       this.dataStore.set(key, value, newBypassTimeOut, newOverrideTimeOut);
       return response();
-    } catch (e) { console.error('versions/v0.ts/set', e) };
+    } catch (e) { this.logger.error('versions/v0.ts/set', e) };
   }
 
   async delete(params: { key: string }) {
@@ -58,6 +60,6 @@ export class v0 {
       const { key } = params;
       await this.dataStore.delete(key);
       return response();
-    } catch (e) { console.error('versions/v0.ts/delete', e) };
+    } catch (e) { this.logger.error('versions/v0.ts/delete', e) };
   }
 }
