@@ -27,7 +27,7 @@ export class api extends v1 {
             if (!player_id || !params || !password) {
                 return response({ error: `Params required` }, STATUS.BadRequest);
             }
-            const hasedPass = hashSha256(password);
+            const hashedPass = hashSha256(password);
             const rawrooms = await this.get({ key: "roomlist" })
             let room_list: string[] = [];
             this.logger.info(rawrooms)
@@ -40,7 +40,7 @@ export class api extends v1 {
             this.logger.info(room_list)
             await this.set({ key: "roomlist", value: room_list, bypassTimeOut: true })
             const map = genMap({ map_size: translateMapSizeMessage(map_size) * max_player })
-            await this.set({ key: `room_${player_id}`, value: { map: map, hash: hasedPass, stats: { map_size_number: translateMapSizeMessage(map_size) * max_player } }, overrideTimeOut: 500 });
+            await this.set({ key: `room_${player_id}`, value: { map: map, hash: hashedPass, stats: { map_size_number: translateMapSizeMessage(map_size) * max_player } }, overrideTimeOut: 500 });
 
             return response(`room_${player_id}`);
         } catch (e) { this.logger.error('BlinedSeek/api.ts/createRoom', e) };

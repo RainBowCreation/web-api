@@ -159,7 +159,7 @@ export class DataStore {
                 this.logger.info(` |_${key} BypassTimeout detected, saving to cache..`);
                 this.cache[key] = { value, expiry: -1 };
                 if (this.redis_enable) {
-                    this.logger.info(`  |_${key} Redis detected, strinifying to ${JSON.stringify(value)}`);
+                    this.logger.info(`  |_${key} Redis detected, stringify to ${JSON.stringify(value)}`);
                     await this.redisClient?.set(key, JSON.stringify(value));
                 }
             }
