@@ -47,7 +47,17 @@ export class api extends v1 {
             const map_size_number = map_size_int * max_player;
             this.logger.info(`map_size ${map_size}, map_size_int ${map_size_int}, total mapsize = ${map_size_number}`);
             const map = genMap({ map_size: map_size_number });
-            await this.set({ key: `room_${player_id}`, value: { map: map, hash: hashedPass, stats: { map_size_number: map_size_number } }, bypassTimeOut: true });
+            await this.set({
+                key: `room_${player_id}`, 
+                value: { 
+                    map: map, 
+                    hash: hashedPass, 
+                    stats: { 
+                        map_size_number: map_size_number 
+                    } 
+                }, 
+                bypassTimeOut: true 
+            });
 
             return response(`room_${player_id}`);
         } catch (e) { this.logger.error('BlinedSeek/api.ts/createRoom', e) };
