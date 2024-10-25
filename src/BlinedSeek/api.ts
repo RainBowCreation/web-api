@@ -10,6 +10,7 @@ import { hashSha256 } from "../utils/Hash";
 import { translateJointPropertiesMessage } from "./ENUM/JOINTPROPERTIES";
 import { translateJointTypeMessage } from "./ENUM/JOINTTYPE";
 import { translateNoteTypeMessage } from "./ENUM/NODETYPE";
+import { log } from "console";
 
 export class api extends v1 {
     constructor(dataStore: DataStore) {
@@ -42,11 +43,24 @@ export class api extends v1 {
             room_list.push(player_id)
             this.logger.info(room_list)
             await this.set({ key: "roomlist", value: room_list, bypassTimeOut: true })
-            const map = genMap({ map_size: translateMapSizeMessage(map_size) * max_player })
-            await this.set({ key: `room_${player_id}`, value: { map: map, hash: hashedPass, stats: { map_size_number: translateMapSizeMessage(map_size) * max_player } }, overrideTimeOut: 500 });
+            const map_size_int: number = translateMapSizeMessage(map_size);
+            const map_size_number = map_size_int * max_player;
+            this.logger.info(`map_size ${map_size}, map_size_int ${map_size_int}, total mapsize = ${map_size_number}`);
+            const map = genMap({ map_size: map_size_number });
+            await this.set({ key: `room_${player_id}`, value: { map: map, hash: hashedPass, stats: { map_size_number: map_size_number } }, bypassTimeOut: true });
 
             return response(`room_${player_id}`);
         } catch (e) { this.logger.error('BlinedSeek/api.ts/createRoom', e) };
+    }
+
+    async getRoom(params: { player_id: string }) {
+        try {
+            const { player_id } = params;
+            if (!player_id) {
+                return response({ error: `Params player_id required` }, STATUS.BadRequest);
+            }
+            return await this.get({ key: `room_${player_id}` });
+        } catch (e) { this.logger.error('BlinedSeek/api.ts/getRoom', e) };
     }
 
     async deleteRoom(params: { player_id: string, room_name: string, password: string }) {
@@ -125,6 +139,9 @@ export class api extends v1 {
     async getEnum(params: { Enum: string, key: string }) {
         try {
             const { Enum, key } = params;
+            if (!Enum || !key) {
+                return response({ error: `Both 'key' and 'Enum' are required` }, STATUS.BadRequest);
+            }
             let value;
             switch(Enum) {
                 case "DIFFICULTY": {

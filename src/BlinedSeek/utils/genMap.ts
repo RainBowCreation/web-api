@@ -15,6 +15,7 @@ export const getRandomInt = (min: number, max: number): number => {
 };
 
 // Function to get random width and height that multiply to map_size
+/*
 export const getDimensions = (size: number): [number, number] => {
     const factors: number[] = [];
     for (let i = 1; i <= Math.sqrt(size); i++) {
@@ -25,7 +26,32 @@ export const getDimensions = (size: number): [number, number] => {
     const width = factors[Math.floor(Math.random() * factors.length)];
     const height = size / width;
     return [width, height];
-};
+};*/
+
+export const getDimensions = (mapSize: number): [number, number] => {
+    let minDimension = Math.ceil(mapSize / 10); // Minimum width and height based on mapSize
+
+    // Find all possible pairs (width, height) where width * height = mapSize
+    let possiblePairs = [];
+    
+    for (let width = minDimension; width <= mapSize; width++) {
+        if (mapSize % width === 0) {  // width * height = mapSize, so height = mapSize / width
+            let height = mapSize / width;
+            if (height >= minDimension) { // Ensure height also satisfies the minDimension condition
+                possiblePairs.push({ width, height });
+            }
+        }
+    }
+
+    // Randomly select one of the valid pairs
+    if (possiblePairs.length > 0) {
+        let pair = possiblePairs[getRandomInt(0, possiblePairs.length - 1)];
+        return [pair.width, pair.height];
+    } else {
+        // In case no valid pair is found, which is unlikely for reasonable map sizes
+        return [ minDimension, minDimension ];
+    }
+}
 
 // Function to place a specific number in random positions
 export const placeNumber = (grid: number[][], num: number, count: number, width: number, height: number) => {
