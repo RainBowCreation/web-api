@@ -1,7 +1,6 @@
 
 import { app, newApp, startServer } from "./api";
 import { DataStore } from "./utils/DataStore";
-import { genMap } from "./BlinedSeek/utils/genMap";
 import * as config from "./myconfig.json";
 import { Logger } from "./log/Logger";
 
@@ -31,18 +30,6 @@ async function main() {
         logger.info('SIGTERM received: Closing the DataStore');
         exit(api);
     });
-}
-
-async function test() {
-    const configuredMap = genMap({ map_size: 20, a: 3, b: 1, c: 1, d: 1, e: 1, f: 2, g: 1 });
-    console.log(configuredMap);
-
-    // Example usage for random parameters:
-    const randomMap = genMap({ map_size: 20 });
-    console.log(randomMap);
-
-    const customMap = genMap({ map_size: 20, a: 3, c: 1, g: 1 });
-    console.log(customMap)
 }
 
 async function exit(api: app) {

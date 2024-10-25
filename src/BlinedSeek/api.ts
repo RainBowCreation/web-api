@@ -1,5 +1,5 @@
 import { genMap, ConfigurableParams } from "./utils/genMap";
-import { DIFFICULTY } from "./ENUM/DIFFICULTY";
+import { DIFFICULTY, translateDifficultyMessage } from "./ENUM/DIFFICULTY";
 import { v1 } from "../versions/v1";
 import { DataStore } from "../utils/DataStore";
 import * as config from "./config.json";
@@ -7,6 +7,9 @@ import { response } from "../api";
 import { STATUS } from "../ENUM/STATUS";
 import { MAPSIZE, translateMapSizeCode, translateMapSizeMessage } from "./ENUM/MAPSIZE";
 import { hashSha256 } from "../utils/Hash";
+import { translateJointPropertiesMessage } from "./ENUM/JOINTPROPERTIES";
+import { translateJointTypeMessage } from "./ENUM/JOINTTYPE";
+import { translateNoteTypeMessage } from "./ENUM/NODETYPE";
 
 export class api extends v1 {
     constructor(dataStore: DataStore) {
@@ -46,7 +49,7 @@ export class api extends v1 {
         } catch (e) { this.logger.error('BlinedSeek/api.ts/createRoom', e) };
     }
 
-    async deleteRoom(params: { player_id: string, room_name: string, password: string; }) {
+    async deleteRoom(params: { player_id: string, room_name: string, password: string }) {
         try {
             const { player_id, room_name, password } = params;
             if (!player_id || !params || !password) {
@@ -117,5 +120,51 @@ export class api extends v1 {
 
     private modifyKey(key: string): string {
         return "BlinedSeek." + key;
+    }
+    
+    async getEnum(params: { Enum: string, key: string }) {
+        try {
+            const { Enum, key } = params;
+            let value;
+            switch(Enum) {
+                case "DIFFICULTY": {
+                    value = translateDifficultyMessage(key);
+                    if (value !== -1) {
+                        return response({ key: key, Enum: Enum, value: value});
+                    }
+                    break;
+                }
+                case "JOINTPROPERTIES": {
+                    value = translateJointPropertiesMessage(key);
+                    if (value !== -1) {
+                        return response({ key: key, Enum: Enum, value: value});
+                    }
+                    break;
+                }
+                case "JOINTTYPE": {
+                    value = translateJointTypeMessage(key);
+                    if (value !== -1) {
+                        return response({ key: key, Enum: Enum, value: value});
+                    }
+                    break;
+                }
+                case "MAPSIZE": {
+                    value = translateMapSizeMessage(key);
+                    if (value !== -1) {
+                        return response({ key: key, Enum: Enum, value: value});
+                    }
+                    break;
+                }
+                case "NODETYPE": {
+                    value = translateNoteTypeMessage(key);
+                    if (value !== -1) {
+                        return response({ key: key, Enum: Enum, value: value});
+                    }
+                    break;
+                }
+            }
+            return response({ error: `${key}' not found` }, STATUS.BadRequest);
+        }
+        catch (e) { this.logger.error('BlinedSeek/api.ts/getConfig', e) };
     }
 }

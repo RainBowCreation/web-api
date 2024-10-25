@@ -51,7 +51,7 @@ export class DataStore {
             }
         }
 
-        //this.startCacheCleanup();
+        this.startCacheCleanup();
     }
     async contain(key: string, updateCacheValue: boolean = false): Promise<boolean> {
         try {
@@ -278,7 +278,7 @@ export class DataStore {
                 }
                 if (this.cache[key].expiry <= now) {
                     this.logger.info(`  |_ expired`)
-                    delete this.cache[key]; // Remove expired key from cache
+                    delete this.cache[key];
                 }
             }
             this.logger.info(`Done..`)
