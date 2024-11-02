@@ -1,16 +1,14 @@
-import { genMap, ConfigurableParams } from "./utils/genMap";
-import { DIFFICULTY, translateDifficultyMessage } from "./ENUM/DIFFICULTY";
+import { genMap } from "./utils/genMap";
+import { translateDifficultyMessage } from "./ENUM/DIFFICULTY";
 import { v1 } from "../versions/v1";
 import { DataStore } from "../utils/DataStore";
-import * as config from "./config.json";
 import { response } from "../api";
 import { STATUS } from "../ENUM/STATUS";
-import { MAPSIZE, translateMapSizeCode, translateMapSizeMessage } from "./ENUM/MAPSIZE";
+import { translateMapSizeMessage } from "./ENUM/MAPSIZE";
 import { hashSha256 } from "../utils/Hash";
 import { translateJointPropertiesMessage } from "./ENUM/JOINTPROPERTIES";
 import { translateJointTypeMessage } from "./ENUM/JOINTTYPE";
 import { translateNoteTypeMessage } from "./ENUM/NODETYPE";
-import { log } from "console";
 
 export class api extends v1 {
     constructor(dataStore: DataStore) {

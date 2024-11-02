@@ -3,7 +3,7 @@ import { STATUS, translateStatusCode } from "./ENUM/STATUS";
 import { DataStore } from "./utils/DataStore";
 import { v0 } from "./versions/v0";
 import { v1 } from "./versions/v1";
-import { api, api as BlinedSeek } from "./BlinedSeek/api";
+import { api as BlinedSeek } from "./BlinedSeek/api";
 import { Logger } from "./log/Logger";
 import { userV1 } from "./versions/v1/user";
 
