@@ -79,23 +79,31 @@ export class api extends v1 {
             if (!player_id || !params || !password) {
                 return response({ error: `Params required` }, STATUS.BadRequest);
             }
-            const rawroom = await this.get({ key: `room_${player_id}` })
+            const rawroom = await this.getRoom({ player_id: player_id});
             let roomHash: string;
             if (rawroom && rawroom.body.hash) {
                 roomHash = rawroom.body.hash as string;
                 if (roomHash === hashSha256(password)) {
+                    this.logger.info(`Password confirmed deleting room..`)
                     await this.delete({ key: `room_${player_id}` });
                     const rawrooms = await this.get({ key: "roomlist" })
                     let room_list: string[] = [];
                     if (rawrooms && rawrooms.body.value && Array.isArray(rawrooms.body.value)) {
                         room_list = rawrooms.body.value as string[];
                         const index = room_list.indexOf(player_id);
+                        this.logger.info(`found room id ${player_id} at position ${index}`)
                         if (index !== -1) {
                             room_list.splice(index, 1);
                         }
                     }
                     await this.set({ key: "roomlist", value: room_list, bypassTimeOut: true });
                 }
+                else {
+                    return response({error: `wrong password`}, STATUS.BadRequest);
+                }
+            }
+            else {
+                return response({error: `room not found`}, STATUS.BadRequest);
             }
             return response();
         } catch (e) { this.logger.error('BlinedSeek/api.ts/deleteRoom', e) };

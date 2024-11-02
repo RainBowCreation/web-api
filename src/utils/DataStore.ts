@@ -113,7 +113,7 @@ export class DataStore {
 
             // Fallback to Redis
             if (this.redis_enable) {
-                this.logger.error(` |_ detect redis enabled, checking redis cache..`);
+                this.logger.info(` |_ detect redis enabled, checking redis cache..`);
                 const rawValue = await this.redisClient?.get(key);
                 if (rawValue === null || rawValue === undefined) {
                     this.logger.error(`  |_ no redis cache for key: ${key}`);
