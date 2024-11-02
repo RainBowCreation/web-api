@@ -1,7 +1,7 @@
 
 import { app, newApp, startServer } from "./api";
 import { DataStore } from "./utils/DataStore";
-import * as config from "./myconfig.json";
+import * as config from "./config.json";
 import { Logger } from "./log/Logger";
 
 const start_time = (new Date().toLocaleTimeString()).replace(/:/g, '_');
