@@ -18,21 +18,21 @@ export class v1 extends v0 {
   }
 
   async getEnum(params: { Enum: string, key: string }) {
-        try {
-            const { Enum, key } = params;
-            let value;
-            switch(Enum) {
-                case "STATUS": {
-                    value = translateStatusMessage(key);
-                    if (value !== -1) {
-                        return response({ key: key, Enum: Enum, value: value});
-                    }
-                    break;
-                }
-                
-            }
-            return response({ error: `${key}' not found` }, STATUS.BadRequest);
+    try {
+      const { Enum, key } = params;
+      let value;
+      switch (Enum) {
+        case "STATUS": {
+          value = translateStatusMessage(key);
+          if (value !== -1) {
+            return response({ key: key, Enum: Enum, value: value });
+          }
+          break;
         }
-        catch (e) { this.logger.error('BlinedSeek/api.ts/getConfig', e) };
+
+      }
+      return response({ error: `${key}' not found` }, STATUS.BadRequest);
     }
+    catch (e) { this.logger.error('versions/v1.ts/getConfig', e) };
+  }
 }

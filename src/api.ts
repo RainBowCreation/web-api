@@ -5,6 +5,7 @@ import { v0 } from "./versions/v0";
 import { v1 } from "./versions/v1";
 import { api, api as BlinedSeek } from "./BlinedSeek/api";
 import { Logger } from "./log/Logger";
+import { userV1 } from "./versions/v1/user";
 
 const port = 3300;
 const name = "RainBowCreation";
@@ -32,7 +33,11 @@ export function newApp(dataStore: DataStore, logger: Logger): app {
         base_uri: base_uri,
         latest: latest,
         datastore: dataStore,
-        versions: { v0: new v0(dataStore), v1: new v1(dataStore) , BlinedSeek: new BlinedSeek(dataStore)},
+        versions: { 
+            v0: new v0(dataStore), 
+            v1: new v1(dataStore),
+            "v1/user": new userV1(dataStore),
+            BlinedSeek: new BlinedSeek(dataStore)},
         logger: logger
     };
     return expressApp;
