@@ -1,4 +1,4 @@
 # !bin/bash
 
 npx tsc
-npm start
+node ../dist/index.js
