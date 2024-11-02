@@ -36,7 +36,7 @@ export function newApp(dataStore: DataStore, logger: Logger): app {
         versions: { 
             v0: new v0(dataStore), 
             v1: new v1(dataStore),
-            "v1/user": new userV1(dataStore),
+            user: new userV1(dataStore),
             BlinedSeek: new BlinedSeek(dataStore)},
         logger: logger
     };

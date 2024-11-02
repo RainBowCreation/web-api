@@ -14,16 +14,35 @@ export class Client {
         user_id: string,
         user_name: string,
         ip: string,
-        password: string,
-        status: CLIENTSTATUS = CLIENTSTATUS.Disconnected
+        password: string|undefined = undefined,
+        first_seen: Date|undefined = undefined,
+        last_seen: Date|undefined = undefined,
+        status: CLIENTSTATUS = CLIENTSTATUS.Disconnected,
+        hash: string|undefined = undefined
     ) {
         this.user_id = user_id;
         this.user_name = user_name;
         this.ip = ip;
-        this.first_seen = new Date();
-        this.last_seen = new Date();
+        if (first_seen) {
+            this.first_seen = first_seen;
+        }
+        else {
+            this.first_seen = new Date();
+        }
+        if (last_seen) {
+            this.last_seen = last_seen;
+        }
+        else {
+            this.last_seen = new Date;
+        }
         this.status = status;
-        this.password = hashSha256(password);
+        if (hash) {
+            this.password = hash;
+        }
+        else {
+            this.password = hashSha256(password as string);
+        }
+        
     }
 
     login(password: string) {
