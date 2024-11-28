@@ -1,8 +1,8 @@
 
 import { app, newApp, startServer } from "./api";
 import { DataStore } from "./utils/DataStore";
-import * as config from "./config.json";
 import { Logger } from "./log/Logger";
+import { loadConfiguration } from "./utils/Config";
 
 const start_time = (new Date().toLocaleTimeString()).replace(/:/g, '_');
 console.log(start_time)
@@ -12,6 +12,7 @@ logger.info("Starting program..");
 async function main() {
     let dataStore: DataStore;
     let api: app;
+    const config = loadConfiguration(logger);
     try {
         dataStore = new DataStore(config.redis, config.mariadb, config.cache.timeout, config.cache.interval, logger);
         api = newApp(dataStore, logger);
