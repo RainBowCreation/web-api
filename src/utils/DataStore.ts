@@ -38,9 +38,30 @@ export class DataStore {
 
         if (this.redis_enable) {
             if (Redis.config !== undefined) {
-                this.redisClient = redis.createClient({ url: Redis.config.url as string, username: Redis.config.username as string, password: Redis.config.password as string });//, legacyMode: true });
-                this.redisClient.connect().then(() => this.logger.info('Connected to Redis'))
-                    .catch((err) => this.logger.error('Redis Client Error', err));
+                this.redisClient = redis.createClient({
+                    url: Redis.config.url as string,
+                    username: Redis.config.username as string,
+                    password: Redis.config.password as string,
+                });
+            
+                (async () => {
+                    try {
+                        if (this.redisClient != undefined) {
+                            await this.redisClient.connect();
+                            logger.info('Connected to Redis');
+                        }
+                        else {
+                            logger.info('unable to create redisClient, disabling redis..');
+                            this.redis_enable = false;
+                            logger.info('redis disabled.');
+                        }
+                    } catch (err) {
+                        logger.error('Redis Client Error', err);
+                        logger.info('disabling redis..');
+                        this.redis_enable = false;
+                        logger.info('redis disabled.');
+                    }
+                })();
             }
         }
         if (this.pool_enable) {
@@ -152,7 +173,7 @@ export class DataStore {
                 this.logger.error(` |_${key} Circular structure detected, cannot store value:`, value); // Skip storing this value
                 return;
             }
-            
+
             if (bypassTimeOut) {
                 this.logger.info(` |_${key} BypassTimeout detected, saving to cache..`);
                 this.cache[key] = { value, expiry: -1 };
